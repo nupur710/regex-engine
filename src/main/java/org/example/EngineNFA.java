@@ -1,50 +1,53 @@
 package org.example;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class EngineNFA {
 
-    private Map<String,State> states;
+    private Map<String, State> stateList;
     private State initialState;
-    private Set<State> endingState;
+    private List<State> finalStates;
+
 
     EngineNFA() {
-        this.states= new HashMap<>();
-        this.initialState= null;
-        this.endingState= new HashSet<>();
+        stateList= new HashMap<>();
+        initialState= null;
+        finalStates= new ArrayList<>();
     }
 
     void setInitialState(State state) {
-        this.initialState= this.states.get(state);
+        this.initialState= state;
     }
 
-    void setEndingState(Set<String> stateNames) {
-        for(String s : stateNames) {
-            this.endingState.add(states.get(s));
+    void setFinalStates(List<State> finalStates) {
+        for(State state : finalStates) {
+            finalStates.add(state);
         }
     }
 
-     void addState(String name) {
-        this.states.put(name, new State(name));
+    void addState(String stateName) {
+        stateList.put(stateName, new State(stateName));
     }
 
-     void declareStates(String... names) {
-        for (String name : names) {
-            this.addState(name);
+    void declareStates(String...stateNames) {
+        for(String n : stateNames) {
+            this.addState(n);
         }
     }
 
-     void addTransition(String fromState, String toState, Matcher matcher) {
-        this.states.get(fromState).addTransition(states.get(toState), matcher);
+    void addTransition(State fromState, State toState, Matcher  matcher) {
+        stateList.get(fromState.getName()).addTransition(toState, matcher);
     }
 
-     void unshiftTransition(String fromState, String toState, Matcher matcher) {
-        this.states.get(fromState).unshiftTransition(states.get(toState), matcher);
+    void unshiftTransition(State fromState, State toState, Matcher matcher) {
+        stateList.get(fromState.getName()).unshiftTransition(toState, matcher);
     }
 
-    void compute(String str) {}
+    void compute(String str) {
+
+    }
 
 }

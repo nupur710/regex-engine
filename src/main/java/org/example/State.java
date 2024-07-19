@@ -16,6 +16,11 @@ public class State {
         this.startsGroups= new ArrayList<>();
         this.endsGroups= new ArrayList<>();
     }
+
+    public String getName() {
+        return name;
+    }
+
     void addTransition(State toState, Matcher matcher) {
         this.transitions.add(new Transition(toState, matcher));
     }
