@@ -1,4 +1,4 @@
-package org.example;
+package org.regexengine;
 
 public class Transition {
 
