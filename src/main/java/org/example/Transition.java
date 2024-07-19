@@ -8,4 +8,12 @@ public class Transition {
         this.state= state;
         this.matcher= matcher;
     }
+
+    public State getState() {
+        return state;
+    }
+
+    public Matcher getMatcher() {
+        return matcher;
+    }
 }

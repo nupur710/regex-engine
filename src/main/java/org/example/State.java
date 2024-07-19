@@ -21,6 +21,10 @@ public class State {
         return name;
     }
 
+    public List<Transition> getTransitions() {
+        return transitions;
+    }
+
     void addTransition(State toState, Matcher matcher) {
         this.transitions.add(new Transition(toState, matcher));
     }
