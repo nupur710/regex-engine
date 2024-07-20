@@ -1,8 +1,8 @@
 package org.regexengine;
 
-public class Matcher {
+abstract public class Matcher {
 
-    boolean matcher(char ch) {
+     boolean matches(char ch) {
         return false;
     }
 

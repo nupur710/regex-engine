@@ -23,9 +23,9 @@ public class EngineNFA {
         this.initialState= state;
     }
 
-    void setFinalStates(List<State> finalStates) {
-        for(State state : finalStates) {
-            finalStates.add(state);
+    void setFinalStates(List<State> stl) {
+        for(State stateName : stl) {
+            finalStates.add(stateName);
         }
     }
 
@@ -43,6 +43,10 @@ public class EngineNFA {
         stateList.get(fromState.getName()).addTransition(toState, matcher);
     }
 
+    State getStateObject(String stateName) {
+        return stateList.get(stateName);
+    }
+
     void unshiftTransition(State fromState, State toState, Matcher matcher) {
         stateList.get(fromState.getName()).unshiftTransition(toState, matcher);
     }
@@ -58,30 +62,27 @@ public class EngineNFA {
 
     boolean compute(String str) {
         Stack<StackElement> stateStack= new Stack<>();
-        stateStack.push(new StackElement(0, this.stateList.get(this.initialState.getName())));
+        stateStack.push(new StackElement(0, this.initialState));
         while(!stateStack.isEmpty()) {
             StackElement stackElement= stateStack.pop();
             State currentState= stackElement.currentState;
             int i= stackElement.i;
-            if(this.finalStates.contains(stackElement.currentState)) {
+            if(this.finalStates.contains(currentState)) {
                 return true;
             }
 
-            if(i < str.length()) {
-                char ch= str.charAt(i);
-                List<Transition> transitions= currentState.getTransitions();
-                for(int j= transitions.size()-1; j >= 0; j--) {
-                    Transition transition= transitions.get(j);
-                    Matcher matcher= transition.getMatcher();
-                    State toState= transition.getState();
-
-                    if(matcher.matcher(ch)) {
-                        int next= matcher.isEpsilon() ? i : i+1;
-                        stateStack.push(new StackElement(next, toState));
+            List<Transition> transitions= currentState.getTransitions();
+            for(int j= transitions.size()-1; j >= 0; j--) {
+                Transition transition= transitions.get(j);
+                Matcher matcher= transition.getMatcher();
+                State toState= transition.getState();
+                if(matcher.isEpsilon()) {
+                    stateStack.add(new StackElement(i, toState));
+                } else if(i < str.length() && matcher.matches(str.charAt(i))) {
+                    stateStack.add(new StackElement(i+1, toState));
                     }
                 }
             }
-        }
         return false;
     }
 }
