@@ -54,19 +54,23 @@ public class EngineNFA {
     static class StackElement {
         int i;
         State currentState;
-        StackElement(int i, State currentState) {
+        List<String> memory;
+
+        StackElement(int i, State currentState, List<String> memory) {
             this.i= i;
             this.currentState= currentState;
+            this.memory= memory;
         }
     }
 
     boolean compute(String str) {
         Stack<StackElement> stateStack= new Stack<>();
-        stateStack.push(new StackElement(0, this.initialState));
+        stateStack.push(new StackElement(0, this.initialState, new ArrayList<>()));
         while(!stateStack.isEmpty()) {
             StackElement stackElement= stateStack.pop();
             State currentState= stackElement.currentState;
             int i= stackElement.i;
+            List<String> memory= stackElement.memory;
             if(this.finalStates.contains(currentState)) {
                 return true;
             }
@@ -77,9 +81,13 @@ public class EngineNFA {
                 Matcher matcher= transition.getMatcher();
                 State toState= transition.getState();
                 if(matcher.isEpsilon()) {
-                    stateStack.add(new StackElement(i, toState));
+                    if(memory.contains(toState.getName())) {
+                        continue;
+                    }
+                    memory.add(currentState.getName());
+                    stateStack.add(new StackElement(i, toState, memory));
                 } else if(i < str.length() && matcher.matches(str.charAt(i))) {
-                    stateStack.add(new StackElement(i+1, toState));
+                    stateStack.add(new StackElement(i+1, toState, memory));
                     }
                 }
             }
