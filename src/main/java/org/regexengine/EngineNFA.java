@@ -13,23 +13,23 @@ public class EngineNFA {
     private List<State> finalStates;
 
 
-    EngineNFA() {
+    public EngineNFA() {
         stateList= new HashMap<>();
         initialState= null;
         finalStates= new ArrayList<>();
     }
 
-    void setInitialState(State state) {
+    public void setInitialState(State state) {
         this.initialState= state;
     }
 
-    void setFinalStates(List<State> stl) {
+    public void setFinalStates(List<State> stl) {
         for(State stateName : stl) {
             finalStates.add(stateName);
         }
     }
 
-    void addState(String stateName) {
+    public void addState(String stateName) {
         stateList.put(stateName, new State(stateName));
     }
 
@@ -39,7 +39,7 @@ public class EngineNFA {
         }
     }
 
-    void addTransition(State fromState, State toState, Matcher  matcher) {
+    public void addTransition(State fromState, State toState, Matcher matcher) {
         stateList.get(fromState.getName()).addTransition(toState, matcher);
     }
 
@@ -51,10 +51,18 @@ public class EngineNFA {
         stateList.get(fromState.getName()).unshiftTransition(toState, matcher);
     }
 
+    public State getInitialState() {
+        return this.initialState;
+    }
+
+    public List<State> getFinalStates() {
+        return this.finalStates;
+    }
+
     static class StackElement {
         int i;
         State currentState;
-        List<String> memory;
+        List<String> memory; //use memory to prevent infinite epsilon transition loops
 
         StackElement(int i, State currentState, List<String> memory) {
             this.i= i;
@@ -71,7 +79,7 @@ public class EngineNFA {
             State currentState= stackElement.currentState;
             int i= stackElement.i;
             List<String> memory= stackElement.memory;
-            if(this.finalStates.contains(currentState)) {
+            if(this.finalStates.contains(currentState) && i == str.length()) {
                 return true;
             }
 
@@ -88,9 +96,9 @@ public class EngineNFA {
                     stateStack.add(new StackElement(i, toState, memory));
                 } else if(i < str.length() && matcher.matches(str.charAt(i))) {
                     stateStack.add(new StackElement(i+1, toState, memory));
-                    }
                 }
             }
+        }
         return false;
     }
 }

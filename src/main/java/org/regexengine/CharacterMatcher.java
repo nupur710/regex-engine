@@ -3,7 +3,7 @@ package org.regexengine;
 public class CharacterMatcher extends Matcher{
 
     private char c;
-    CharacterMatcher(char c) {
+    public CharacterMatcher(char c) {
         this.c= c;
     }
 

@@ -10,7 +10,7 @@ public class State {
     private List<String> startsGroups;
     private List<String> endsGroups;
 
-    State(String name) {
+    public State(String name) {
         this.name= name;
         this.transitions= new ArrayList<>();
         this.startsGroups= new ArrayList<>();
