@@ -29,11 +29,15 @@ public class EngineNFA {
         }
     }
 
+    public void setFinalStates(State state) {
+        finalStates.add(state);
+    }
+
     public void addState(String stateName) {
         stateList.put(stateName, new State(stateName));
     }
 
-    void declareStates(String...stateNames) {
+    public void declareStates(String... stateNames) {
         for(String n : stateNames) {
             this.addState(n);
         }
@@ -43,13 +47,15 @@ public class EngineNFA {
         stateList.get(fromState.getName()).addTransition(toState, matcher);
     }
 
-    State getStateObject(String stateName) {
+    public State getStateObject(String stateName) {
         return stateList.get(stateName);
     }
 
     void unshiftTransition(State fromState, State toState, Matcher matcher) {
         stateList.get(fromState.getName()).unshiftTransition(toState, matcher);
     }
+
+
 
     public State getInitialState() {
         return this.initialState;
