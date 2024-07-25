@@ -8,7 +8,7 @@ import java.util.Stack;
 
 public class EngineNFA {
 
-    private Map<String, State> stateList;
+    public Map<String, State> stateList;
     private State initialState;
     private List<State> finalStates;
 
@@ -31,6 +31,20 @@ public class EngineNFA {
 
     public void setFinalStates(State state) {
         finalStates.add(state);
+    }
+
+    //returns all states in nfa
+    public List<State> getAllStates() {
+        List<State> allStates= new ArrayList<>();
+        for(Map.Entry<String, State> entry : stateList.entrySet()) {
+            allStates.add(entry.getValue());
+        }
+        return allStates;
+    }
+
+    //when there is only 1 final state
+    public State getFinalState() {
+        return finalStates.get(0);
     }
 
     public void addState(String stateName) {
