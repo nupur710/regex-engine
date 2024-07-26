@@ -29,8 +29,10 @@ public class BuildNFA {
                     break;
                 } case 10: {
                     buildOptional(token);
+                    break;
                 } case 1: {
                     buildOr();
+                    break;
                 }
             }
         }
@@ -44,7 +46,7 @@ public class BuildNFA {
         State finalState= engineNFA.getStateObject("q1");
         engineNFA.setInitialState(initialState);
         engineNFA.setFinalStates(finalState);
-        engineNFA.addTransition(initialState, finalState, new CharacterMatcher((char)tokenMatcher.getType()));
+        engineNFA.addTransition(initialState, finalState, new CharacterMatcher(tokenMatcher.getText().charAt(0)));
         nfaStack.add(engineNFA);
     }
 
@@ -154,7 +156,7 @@ public class BuildNFA {
         engineNFA2.setInitialState(initialState);
         engineNFA2.setFinalStates(finalState);
         engineNFA2.addTransition(initialState, prevInitialState, new EpsilonMatcher());
-        engineNFA2.addTransition(prevFinalState, finalState, new CharacterMatcher((char)tokenMatcher.getType()));
+        engineNFA2.addTransition(prevFinalState, finalState, new CharacterMatcher(tokenMatcher.getText().charAt(0)));
         engineNFA2.addTransition(initialState, finalState, new EpsilonMatcher());
         nfaStack.add(engineNFA2);
     }
