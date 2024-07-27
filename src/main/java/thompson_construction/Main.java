@@ -6,12 +6,13 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.regexengine.EngineNFA;
 import parser.regexLexer;
 import parser.regexParser;
 
 public class Main {
     public static void main(String[] args) {
-        String input="a+(b|c)*?x";
+        String input="ab";
         CharStream inputStream= CharStreams.fromString(input);
         regexLexer lexer= new regexLexer(inputStream);
         CommonTokenStream tokens= new CommonTokenStream(lexer);
@@ -21,8 +22,9 @@ public class Main {
             System.out.println("Token: " + token.getText() + " Type: " + token.getType());
         }
 
-        regexParser parser= new regexParser(tokens);
-        ParseTree ast= parser.main();
-        System.out.println(ast.toStringTree(parser));
+        BuildNFA buildNFA= new BuildNFA(tokens);
+        buildNFA.parseQuantifiers();
+        EngineNFA nfa= buildNFA.getFinalEngine();
+        System.out.println(nfa.compute("ab"));
     }
 }

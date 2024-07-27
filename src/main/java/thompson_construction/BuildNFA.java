@@ -177,4 +177,64 @@ public class BuildNFA {
         engineNFA3.addTransition(engineNFA2.getFinalState(), finalState, new EpsilonMatcher());
         nfaStack.add(engineNFA3);
     }
+
+    public EngineNFA getFinalEngine() {
+        if(nfaStack.size() == 1) {
+            return nfaStack.pop();
+        }
+        EngineNFA finalNfa= null;
+        while(nfaStack.size() > 1) {
+            EngineNFA engineNFA1= nfaStack.pop();
+            EngineNFA engineNFA2= nfaStack.pop();
+            finalNfa= buildConcat(engineNFA1, engineNFA2);
+        }
+        return finalNfa;
+    }
+
+    private EngineNFA buildConcat(EngineNFA engineNFA1, EngineNFA engineNFA2) {
+        EngineNFA concatenatedNfa = new EngineNFA();
+        State prevInitialState1 = null;
+        State prevFinalState1 = null;
+        for (State state : engineNFA1.getAllStates()) {
+            String name = state.getName() + "_copy";
+            concatenatedNfa.addState(name);
+            if (state == engineNFA1.getInitialState()) {
+                prevInitialState1 = concatenatedNfa.getStateObject(name);
+            }
+            if (state == engineNFA1.getFinalState()) {
+                prevFinalState1 = concatenatedNfa.getStateObject(name);
+            }
+            State getState = concatenatedNfa.getStateObject(name);
+            for (Transition transition : state.getTransitions()) {
+                Matcher matcher = transition.getMatcher();
+                String toStateName = transition.getState().getName() + "_copy";
+                State getToState = concatenatedNfa.getStateObject(toStateName);
+                concatenatedNfa.addTransition(getState, getToState, matcher);
+            }
+        }
+        State prevInitialState2 = null;
+        State prevFinalState2 = null;
+        for (State state : engineNFA2.getAllStates()) {
+            String name = state.getName() + "_copy";
+            concatenatedNfa.addState(name);
+            if (state == engineNFA2.getInitialState()) {
+                prevInitialState2 = concatenatedNfa.getStateObject(name);
+            }
+            if (state == engineNFA2.getFinalState()) {
+                prevFinalState2 = concatenatedNfa.getStateObject(name);
+            }
+            State getState = concatenatedNfa.getStateObject(name);
+            for (Transition transition : state.getTransitions()) {
+                Matcher matcher = transition.getMatcher();
+                String toStateName = transition.getState().getName() + "_copy";
+                State getToState = concatenatedNfa.getStateObject(toStateName);
+                concatenatedNfa.addTransition(getState, getToState, matcher);
+            }
+        }
+
+        concatenatedNfa.addTransition(prevFinalState1, prevInitialState2, new EpsilonMatcher());
+        concatenatedNfa.setInitialState(prevInitialState1);
+        concatenatedNfa.setFinalStates(prevFinalState2);
+        return concatenatedNfa;
+    }
 }

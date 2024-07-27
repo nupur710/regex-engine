@@ -91,7 +91,7 @@ public class EngineNFA {
         }
     }
 
-    boolean compute(String str) {
+    public boolean compute(String str) {
         Stack<StackElement> stateStack= new Stack<>();
         stateStack.push(new StackElement(0, this.initialState, new ArrayList<>()));
         while(!stateStack.isEmpty()) {
