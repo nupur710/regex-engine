@@ -12,7 +12,7 @@ import parser.regexParser;
 
 public class Main {
     public static void main(String[] args) {
-        String input="abbbbb";
+        String input="ab+";
         CharStream inputStream= CharStreams.fromString(input);
         regexLexer lexer= new regexLexer(inputStream);
         CommonTokenStream tokens= new CommonTokenStream(lexer);
@@ -25,6 +25,6 @@ public class Main {
         BuildNFA buildNFA= new BuildNFA(tokens);
         buildNFA.parseQuantifiers();
         EngineNFA nfa= buildNFA.getFinalEngine();
-        System.out.println(nfa.compute("abbbbb"));
+        System.out.println(nfa.compute("abbb"));
     }
 }

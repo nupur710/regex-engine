@@ -212,12 +212,11 @@ public class BuildNFA {
                 concatenatedNFA.addTransition(fromState, toState, transition.getMatcher());
             }
         }
-        concatenatedNFA.declareStates("q0", "q1");
-        concatenatedNFA.setInitialState(concatenatedNFA.getStateObject("q0"));
-        concatenatedNFA.setFinalStates(concatenatedNFA.getStateObject("q1"));
+        State newInitialState= concatenatedNFA.getStateObject(leftInitialStateName);
+        concatenatedNFA.setInitialState(newInitialState);
+        State newFinalState= concatenatedNFA.getStateObject(rightFinalStateName);
+        concatenatedNFA.setFinalStates(newFinalState);
         concatenatedNFA.addTransition(concatenatedNFA.getStateObject(leftFinalStateName), concatenatedNFA.getStateObject(rightInitialStateName), new EpsilonMatcher());
-        concatenatedNFA.addTransition(concatenatedNFA.getInitialState(), concatenatedNFA.getStateObject(leftInitialStateName), new EpsilonMatcher());
-        concatenatedNFA.addTransition(concatenatedNFA.getStateObject(rightFinalStateName), concatenatedNFA.getFinalState(), new EpsilonMatcher());
         return concatenatedNFA;
     }
 }
