@@ -20,6 +20,10 @@ public class BuildNFA {
             switch (token.getType()) {
                 case 19: {
                     buildSingleChar(token);
+                    if(nfaStack.size() > 1) {
+                        EngineNFA concatenated= buildConcat();
+                        nfaStack.push(concatenated);
+                    }
                     break;
                 } case 8: {
                     buildPlus();
@@ -54,41 +58,34 @@ public class BuildNFA {
     public void buildPlus() {
         EngineNFA engineNFA1= nfaStack.pop();
         EngineNFA engineNFA2= new EngineNFA();
-        //add all states from engineNFA1 to engineNFA2
-        //create new state string name as state.getName_copy
-        //add above created state to engineNFA2
-        //get the above state using its string name
-        //for each transition in state.getTransition()
-        //get toState name as string = transiton.getState().getName()_copy
-        //get the above in state form
-        //add it to above created state in step 1
-        State prevInitialState= null;
-        State prevFinalState= null;
+        State previousInitialState= null, previousFinalState= null, midStateToTransition= null;
         for(State state : engineNFA1.getAllStates()) {
-            String name= state.getName()+"_copy";
-            engineNFA2.addState(name);
+            engineNFA2.addState(state.getName());
             if(state == engineNFA1.getInitialState()) {
-                prevInitialState= engineNFA2.getStateObject(name);
+                previousInitialState= engineNFA2.getStateObject(state.getName());
             }
             if(state == engineNFA1.getFinalState()) {
-                prevFinalState= engineNFA2.getStateObject(name);
-            }
-            State getState= engineNFA2.getStateObject(name);
-            for(Transition transition : state.getTransitions()) {
-                Matcher matcher= transition.getMatcher();
-                String toStateName= transition.getState().getName()+"_copy";
-                State getToState= engineNFA2.getStateObject(toStateName);
-                engineNFA2.addTransition(getState, getToState, matcher);
+                previousFinalState= engineNFA2.getStateObject(state.getName());
             }
         }
-        engineNFA2.declareStates("q0", "q1");
-        State initialState= engineNFA2.getStateObject("q0");
-        State finalState= engineNFA2.getStateObject("q1");
+        for(State state : engineNFA1.getAllStates()) {
+            for(Transition transition : state.getTransitions()) {
+                String toStateName= transition.getState().getName();
+                State toState= engineNFA2.getStateObject(toStateName);
+                if(toState.getName().equals(previousFinalState.getName())) {
+                    midStateToTransition= engineNFA2.getStateObject(state.getName());
+                }
+                engineNFA2.addTransition(state, toState, transition.getMatcher());
+            }
+        }
+        engineNFA2.declareStates("q0_fin", "q1_fin");
+        State initialState= engineNFA2.getStateObject("q0_fin");
+        State finalState= engineNFA2.getStateObject("q1_fin");
         engineNFA2.setInitialState(initialState);
         engineNFA2.setFinalStates(finalState);
-        engineNFA2.addTransition(initialState, prevInitialState, new EpsilonMatcher());
-        engineNFA2.addTransition(prevFinalState, finalState, new EpsilonMatcher());
-        engineNFA2.addTransition(finalState, initialState, new EpsilonMatcher());
+        engineNFA2.addTransition(initialState, previousInitialState, new EpsilonMatcher());
+        engineNFA2.addTransition(previousFinalState, finalState, new EpsilonMatcher());
+        engineNFA2.addTransition(previousFinalState, midStateToTransition, new EpsilonMatcher());
         nfaStack.add(engineNFA2);
     }
 
@@ -179,62 +176,48 @@ public class BuildNFA {
     }
 
     public EngineNFA getFinalEngine() {
-        if(nfaStack.size() == 1) {
-            return nfaStack.pop();
-        }
-        EngineNFA finalNfa= null;
-        while(nfaStack.size() > 1) {
-            EngineNFA engineNFA1= nfaStack.pop();
-            EngineNFA engineNFA2= nfaStack.pop();
-            finalNfa= buildConcat(engineNFA1, engineNFA2);
-        }
-        return finalNfa;
+        return nfaStack.pop();
     }
 
-    private EngineNFA buildConcat(EngineNFA engineNFA1, EngineNFA engineNFA2) {
-        EngineNFA concatenatedNfa = new EngineNFA();
-        State prevInitialState1 = null;
-        State prevFinalState1 = null;
-        for (State state : engineNFA1.getAllStates()) {
-            String name = state.getName() + "_copy";
-            concatenatedNfa.addState(name);
-            if (state == engineNFA1.getInitialState()) {
-                prevInitialState1 = concatenatedNfa.getStateObject(name);
-            }
-            if (state == engineNFA1.getFinalState()) {
-                prevFinalState1 = concatenatedNfa.getStateObject(name);
-            }
-            State getState = concatenatedNfa.getStateObject(name);
-            for (Transition transition : state.getTransitions()) {
-                Matcher matcher = transition.getMatcher();
-                String toStateName = transition.getState().getName() + "_copy";
-                State getToState = concatenatedNfa.getStateObject(toStateName);
-                concatenatedNfa.addTransition(getState, getToState, matcher);
-            }
+    private EngineNFA buildConcat() {
+        EngineNFA concatenatedNFA= new EngineNFA();
+        EngineNFA rightNFA= nfaStack.pop();
+        EngineNFA leftNFA= nfaStack.pop();
+        String leftInitialStateName= leftNFA.getInitialState().getName()+"_left";
+        String leftFinalStateName= leftNFA.getFinalState().getName()+"_left";
+        String rightInitialStateName= rightNFA.getInitialState().getName()+"_right";
+        String rightFinalStateName= rightNFA.getFinalState().getName()+"_right";
+        //add all states & transitions from right nfa to concatenated nfa
+        for(State state : rightNFA.getAllStates()) {
+            concatenatedNFA.addState(state.getName() + "_right");
         }
-        State prevInitialState2 = null;
-        State prevFinalState2 = null;
-        for (State state : engineNFA2.getAllStates()) {
-            String name = state.getName() + "_copy";
-            concatenatedNfa.addState(name);
-            if (state == engineNFA2.getInitialState()) {
-                prevInitialState2 = concatenatedNfa.getStateObject(name);
-            }
-            if (state == engineNFA2.getFinalState()) {
-                prevFinalState2 = concatenatedNfa.getStateObject(name);
-            }
-            State getState = concatenatedNfa.getStateObject(name);
-            for (Transition transition : state.getTransitions()) {
-                Matcher matcher = transition.getMatcher();
-                String toStateName = transition.getState().getName() + "_copy";
-                State getToState = concatenatedNfa.getStateObject(toStateName);
-                concatenatedNfa.addTransition(getState, getToState, matcher);
+        for(State state : rightNFA.getAllStates()) {
+            for(Transition transition : state.getTransitions()) {
+                State fromState= concatenatedNFA.getStateObject(state.getName()+"_right");
+                String toStateName= transition.getState().getName()+"_right";
+                State toState= concatenatedNFA.getStateObject(toStateName);
+                concatenatedNFA.addTransition(fromState, toState, transition.getMatcher());
             }
         }
 
-        concatenatedNfa.addTransition(prevFinalState1, prevInitialState2, new EpsilonMatcher());
-        concatenatedNfa.setInitialState(prevInitialState1);
-        concatenatedNfa.setFinalStates(prevFinalState2);
-        return concatenatedNfa;
+        //add all states & transitions from left nfa to concatenated nfa
+        for(State state : leftNFA.getAllStates()) {
+            concatenatedNFA.addState(state.getName() + "_left");
+        }
+        for(State state : leftNFA.getAllStates()) {
+            for(Transition transition : state.getTransitions()) {
+                State fromState= concatenatedNFA.getStateObject(state.getName()+"_left");
+                String toStateName= transition.getState().getName()+"_left";
+                State toState= concatenatedNFA.getStateObject(toStateName);
+                concatenatedNFA.addTransition(fromState, toState, transition.getMatcher());
+            }
+        }
+        concatenatedNFA.declareStates("q0", "q1");
+        concatenatedNFA.setInitialState(concatenatedNFA.getStateObject("q0"));
+        concatenatedNFA.setFinalStates(concatenatedNFA.getStateObject("q1"));
+        concatenatedNFA.addTransition(concatenatedNFA.getStateObject(leftFinalStateName), concatenatedNFA.getStateObject(rightInitialStateName), new EpsilonMatcher());
+        concatenatedNFA.addTransition(concatenatedNFA.getInitialState(), concatenatedNFA.getStateObject(leftInitialStateName), new EpsilonMatcher());
+        concatenatedNFA.addTransition(concatenatedNFA.getStateObject(rightFinalStateName), concatenatedNFA.getFinalState(), new EpsilonMatcher());
+        return concatenatedNFA;
     }
 }

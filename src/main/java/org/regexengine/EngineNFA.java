@@ -109,7 +109,7 @@ public class EngineNFA {
                 Matcher matcher= transition.getMatcher();
                 State toState= transition.getState();
                 if(matcher.isEpsilon()) {
-                    if(memory.contains(toState.getName())) {
+                    if(memory.size()>0 && memory.contains(toState.getName())) {
                         continue;
                     }
                     memory.add(currentState.getName());
