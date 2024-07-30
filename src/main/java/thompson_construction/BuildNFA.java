@@ -29,7 +29,7 @@ public class BuildNFA {
                     buildPlus();
                     break;
                 } case 7: {
-                    buildKleeneStar2();
+                    buildKleeneStar();
                     break;
                 } case 10: {
                     buildOptional(token);
@@ -93,47 +93,6 @@ public class BuildNFA {
     public void buildKleeneStar() {
         EngineNFA engineNFA1= nfaStack.pop();
         EngineNFA engineNFA2= new EngineNFA();
-        State prevInitialState= null, prevFinalState= null, mid= null, nextMid= null, nextMid2= null;
-        for(State state : engineNFA1.getAllStates()) {
-            String name= state.getName()+"_copy";
-            engineNFA2.addState(name);
-            if(state == engineNFA1.getInitialState()) {
-                prevInitialState= engineNFA2.getStateObject(name);
-            }
-            if(state == engineNFA1.getFinalState()) {
-                prevFinalState= engineNFA2.getStateObject(name);
-            }
-            State getState= engineNFA2.getStateObject(name);
-            for(Transition transition : state.getTransitions()) {
-                Matcher matcher= transition.getMatcher();
-                if(transition.getState() == prevFinalState) {
-                    mid= state;
-                    nextMid= transition.getState();
-
-                }
-                if(transition.getState() == nextMid) {
-                    nextMid2= transition.getState();
-                }
-                String toStateName= transition.getState().getName()+"_copy";
-                State getToState= engineNFA2.getStateObject(toStateName);
-                engineNFA2.addTransition(getState, getToState, matcher);
-            }
-        }
-        engineNFA2.declareStates("q0", "q1");
-        State initialState= engineNFA2.getStateObject("q0");
-        State finalState= engineNFA2.getStateObject("q1");
-        engineNFA2.setInitialState(initialState);
-        engineNFA2.setFinalStates(finalState);
-        engineNFA2.addTransition(initialState, finalState, new EpsilonMatcher());
-        engineNFA2.addTransition(initialState, prevInitialState, new EpsilonMatcher());
-        engineNFA2.addTransition(prevFinalState, finalState, new EpsilonMatcher());
-        engineNFA2.addTransition(prevFinalState, prevInitialState, new EpsilonMatcher());
-        nfaStack.add(engineNFA2);
-    }
-
-    public void buildKleeneStar2() {
-        EngineNFA engineNFA1= nfaStack.pop();
-        EngineNFA engineNFA2= new EngineNFA();
         Matcher matcher= null;
         State previousInitialState=  null, previousFinalState= null,  mid= null, previousMid= null;
         for(State state : engineNFA1.getAllStates()) {
@@ -176,52 +135,31 @@ public class BuildNFA {
     //for ? quantifier
     void buildOptional(Token tokenMatcher) {
         EngineNFA engineNFA1= nfaStack.pop();
-        EngineNFA engineNFA2= new EngineNFA();
-        State prevInitialState= null;
-        State prevFinalState= null;
+        State optionalState= null;
         for(State state : engineNFA1.getAllStates()) {
-            String name= state.getName()+"_copy";
-            engineNFA2.addState(name);
-            if(state == engineNFA1.getInitialState()) {
-                prevInitialState= engineNFA2.getStateObject(name);
-            }
-            if(state == engineNFA1.getFinalState()) {
-                prevFinalState= engineNFA2.getStateObject(name);
-            }
-            State getState= engineNFA2.getStateObject(name);
             for(Transition transition : state.getTransitions()) {
-                Matcher matcher= transition.getMatcher();
-                String toStateName= transition.getState().getName()+"_copy";
-                State getToState= engineNFA2.getStateObject(toStateName);
-                engineNFA2.addTransition(getState, getToState, matcher);
+                if(transition.getState() == engineNFA1.getFinalState()) {
+                    optionalState= state;
+                }
             }
         }
-        engineNFA2.declareStates("q0", "q1");
-        State initialState= engineNFA2.getStateObject("q0");
-        State finalState= engineNFA2.getStateObject("q1");
-        engineNFA2.setInitialState(initialState);
-        engineNFA2.setFinalStates(finalState);
-        engineNFA2.addTransition(initialState, prevInitialState, new EpsilonMatcher());
-        engineNFA2.addTransition(prevFinalState, finalState, new CharacterMatcher(tokenMatcher.getText().charAt(0)));
-        engineNFA2.addTransition(initialState, finalState, new EpsilonMatcher());
-        nfaStack.add(engineNFA2);
+        engineNFA1.addTransition(optionalState, engineNFA1.getFinalState(), new EpsilonMatcher());
+        nfaStack.add(engineNFA1);
     }
 
     //for | symbol
     void buildOr() {
         EngineNFA engineNFA1= nfaStack.pop();
-        EngineNFA engineNFA2= nfaStack.pop();
-        EngineNFA engineNFA3= new EngineNFA();
-        engineNFA3.declareStates("q0", "q1");
-        State initialState= engineNFA3.getStateObject("q0");
-        State finalState= engineNFA3.getStateObject("q1");
-        engineNFA3.setInitialState(initialState);
-        engineNFA3.setFinalStates(finalState);
-        engineNFA3.addTransition(initialState, engineNFA1.getInitialState(), new EpsilonMatcher());
-        engineNFA3.addTransition(finalState, engineNFA2.getInitialState(), new EpsilonMatcher());
-        engineNFA3.addTransition(engineNFA1.getFinalState(), finalState, new EpsilonMatcher());
-        engineNFA3.addTransition(engineNFA2.getFinalState(), finalState, new EpsilonMatcher());
-        nfaStack.add(engineNFA3);
+        State previousInitial= engineNFA1.getInitialState();
+        State previousFinal= engineNFA1.getFinalState();
+        engineNFA1.declareStates("q0_fin", "q1_fin");
+        State midState= engineNFA1.getStateObject("q0_fin");
+        State newFinal= engineNFA1.getStateObject("q1_fin");
+        engineNFA1.overwriteFinalState(newFinal);
+        engineNFA1.addTransition(previousInitial, midState, new EpsilonMatcher());
+        engineNFA1.addTransition(midState, newFinal, new EpsilonMatcher());
+        engineNFA1.addTransition(previousFinal, newFinal, new EpsilonMatcher());
+        nfaStack.add(engineNFA1);
     }
 
     public EngineNFA getFinalEngine() {
