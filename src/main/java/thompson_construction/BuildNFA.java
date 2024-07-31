@@ -16,13 +16,20 @@ public class BuildNFA {
     }
 
     public void parseQuantifiers() {
+        boolean orFlag= false;
+        State orState= null;
         for(Token token : regexTokens.getTokens()) {
             switch (token.getType()) {
                 case 19: {
                     buildSingleChar(token);
                     if(nfaStack.size() > 1) {
-                        EngineNFA concatenated= buildConcat();
-                        nfaStack.push(concatenated);
+                        if(orFlag == true && orState != null) {
+                            EngineNFA orConcatenated= buildOrConcat(token, orFlag, orState);
+                            nfaStack.push(orConcatenated);
+                        } else {
+                            EngineNFA concatenated = buildConcat();
+                            nfaStack.push(concatenated);
+                        }
                     }
                     break;
                 } case 8: {
@@ -35,7 +42,8 @@ public class BuildNFA {
                     buildOptional(token);
                     break;
                 } case 1: {
-                    buildOr();
+                    orFlag= true;
+                    orState= buildOr();
                     break;
                 }
             }
@@ -148,18 +156,19 @@ public class BuildNFA {
     }
 
     //for | symbol
-    void buildOr() {
-        EngineNFA engineNFA1= nfaStack.pop();
-        State previousInitial= engineNFA1.getInitialState();
-        State previousFinal= engineNFA1.getFinalState();
-        engineNFA1.declareStates("q0_fin", "q1_fin");
-        State midState= engineNFA1.getStateObject("q0_fin");
-        State newFinal= engineNFA1.getStateObject("q1_fin");
-        engineNFA1.overwriteFinalState(newFinal);
-        engineNFA1.addTransition(previousInitial, midState, new EpsilonMatcher());
-        engineNFA1.addTransition(midState, newFinal, new EpsilonMatcher());
-        engineNFA1.addTransition(previousFinal, newFinal, new EpsilonMatcher());
-        nfaStack.add(engineNFA1);
+    State buildOr() {
+        EngineNFA orNFA= nfaStack.pop();
+        State previousInitial= orNFA.getInitialState();
+        State previousFinal= orNFA.getFinalState();
+        orNFA.declareStates("q0_fin", "q1_fin");
+        State midState= orNFA.getStateObject("q0_fin");
+        State newFinal= orNFA.getStateObject("q1_fin");
+        orNFA.overwriteFinalState(newFinal);
+        orNFA.addTransition(previousInitial, midState, new EpsilonMatcher());
+        orNFA.addTransition(midState, newFinal, new EpsilonMatcher());
+        orNFA.addTransition(previousFinal, newFinal, new EpsilonMatcher());
+        nfaStack.add(orNFA);
+        return midState;
     }
 
     public EngineNFA getFinalEngine() {
@@ -205,5 +214,20 @@ public class BuildNFA {
         concatenatedNFA.setFinalStates(newFinalState);
         concatenatedNFA.addTransition(concatenatedNFA.getStateObject(leftFinalStateName), concatenatedNFA.getStateObject(rightInitialStateName), new EpsilonMatcher());
         return concatenatedNFA;
+    }
+
+    public EngineNFA buildOrConcat(Token token, boolean orFlag, State orState) {
+        if(nfaStack.size() == 2) {
+            nfaStack.pop();
+        }
+        EngineNFA engineNFA1= nfaStack.pop();
+        State initialState= engineNFA1.getInitialState();
+        for(Transition transition : initialState.getTransitions()) {
+            if(transition.getState() == orState) {
+                transition.setMatcher(new CharacterMatcher(token.getText().charAt(0)));
+            }
+        }
+        orFlag= false;
+        return engineNFA1;
     }
 }

@@ -16,4 +16,8 @@ public class Transition {
     public Matcher getMatcher() {
         return matcher;
     }
+
+    public void setMatcher(Matcher matcher) {
+        this.matcher = matcher;
+    }
 }

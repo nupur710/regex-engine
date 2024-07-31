@@ -33,6 +33,10 @@ public class EngineNFA {
         finalStates.add(state);
     }
 
+    public void overwriteFinalState(State state) {
+        finalStates.set(0, state);
+    }
+
     //returns all states in nfa
     public List<State> getAllStates() {
         List<State> allStates= new ArrayList<>();
