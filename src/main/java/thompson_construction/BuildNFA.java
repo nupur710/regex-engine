@@ -39,7 +39,7 @@ public class BuildNFA {
                     buildKleeneStar();
                     break;
                 } case 10: {
-                    buildOptional(token);
+                    buildOptional();
                     break;
                 } case 1: {
                     orFlag= true;
@@ -141,7 +141,7 @@ public class BuildNFA {
     }
 
     //for ? quantifier
-    void buildOptional(Token tokenMatcher) {
+    void buildOptional() {
         EngineNFA engineNFA1= nfaStack.pop();
         State optionalState= null;
         for(State state : engineNFA1.getAllStates()) {
