@@ -19,7 +19,6 @@ public class Main {
         engineNFA.addTransition(engineNFA.getStateObject("q0"), engineNFA.getStateObject("q1"), new CharacterMatcher('a'));
         engineNFA.addTransition(engineNFA.getStateObject("q1"), engineNFA.getStateObject("q1"), new EpsilonMatcher());
         engineNFA.addTransition(engineNFA.getStateObject("q1"), engineNFA.getStateObject("q2"), new CharacterMatcher('b'));
-        //    engineNFA.addTransition(engineNFA.getStateObject("q2"), engineNFA.getStateObject("q3"), new EpsilonMatcher());
         System.out.println(engineNFA.compute("ab"));
 
     }

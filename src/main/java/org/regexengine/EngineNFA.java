@@ -119,8 +119,12 @@ public class EngineNFA {
                     List<String> newMemory= new ArrayList<>(memory);
                     newMemory.add(currentState.getName());
                     stateStack.add(new StackElement(i, toState, newMemory));
-                } else if(i < str.length() && matcher.matches(str.charAt(i))) {
-                    stateStack.add(new StackElement(i+1, toState, new ArrayList<>(memory)));
+                }
+                else if (!matcher.isClassMatcher() && i < str.length() && matcher.matches(str.charAt(i))) {
+                        stateStack.add(new StackElement(i + 1, toState, new ArrayList<>(memory)));
+                    }
+                else if (matcher.isClassMatcher() && i < str.length() && matcher.matches1(str.charAt(i))) {
+                    stateStack.add(new StackElement(i + 1, toState, new ArrayList<>(memory)));
                 }
             }
         }

@@ -8,6 +8,16 @@ public class EpsilonMatcher extends Matcher {
     }
 
     @Override
+    boolean isClassMatcher() {
+        return false;
+    }
+
+    @Override
+    boolean matches1(char c) {
+        return false;
+    }
+
+    @Override
     boolean isEpsilon() {
         return true;
     }

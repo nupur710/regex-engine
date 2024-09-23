@@ -6,6 +6,9 @@ abstract public class Matcher {
         return false;
     }
 
+    abstract boolean isClassMatcher();
+    abstract boolean matches1(char c);
+
     boolean isEpsilon() {
         return false;
     }

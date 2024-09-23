@@ -4,27 +4,35 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.regexengine.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Stack;
 
 public class BuildNFA {
+    private List<Token> regexTokensList;
+    private Stack<EngineNFA> nfaStack = new Stack<>();
+    private int tokenIndex = 0;
 
-    private CommonTokenStream regexTokens;
-    private Stack<EngineNFA> nfaStack= new Stack<>();
     public BuildNFA(CommonTokenStream regexTokens) {
-        this.regexTokens= regexTokens;
+        this.regexTokensList = regexTokens.getTokens();
     }
 
-    public void parseQuantifiers() {
-        boolean orFlag= false;
-        State orState= null;
-        for(Token token : regexTokens.getTokens()) {
+    public void parseQuantifiers() throws IOException {
+        boolean orFlag = false;
+        State orState = null;
+        while (tokenIndex < regexTokensList.size()) {
+            Token token= regexTokensList.get(tokenIndex);
             switch (token.getType()) {
+                case 11: {
+                    buildCharacterClass();
+                    tokenIndex += 3;
+                    break;
+                }
                 case 19: {
                     buildSingleChar(token);
-                    if(nfaStack.size() > 1) {
-                        if(orFlag == true && orState != null) {
-                            EngineNFA orConcatenated= buildOrConcat(token, orFlag, orState);
+                    if (nfaStack.size() > 1) {
+                        if (orFlag == true && orState != null) {
+                            EngineNFA orConcatenated = buildOrConcat(token, orFlag, orState);
                             nfaStack.push(orConcatenated);
                         } else {
                             EngineNFA concatenated = buildConcat();
@@ -32,21 +40,28 @@ public class BuildNFA {
                         }
                     }
                     break;
-                } case 8: {
+                }
+                case 8: {
                     buildPlus();
                     break;
-                } case 7: {
+                }
+                case 7: {
                     buildKleeneStar();
                     break;
-                } case 10: {
+                }
+                case 10: {
                     buildOptional();
                     break;
-                } case 1: {
-                    orFlag= true;
-                    orState= buildOr();
+                }
+                case 1: {
+                    orFlag = true;
+                    orState = buildOr();
                     break;
                 }
+                default:
+                    throw new IOException("Invalid token: " + token);
             }
+            tokenIndex++;
         }
     }
 
@@ -229,5 +244,33 @@ public class BuildNFA {
         }
         orFlag= false;
         return engineNFA1;
+    }
+
+    private Token[] tokenBoundary() throws IOException {
+        Token[] tokens= new Token[2];
+        this.tokenIndex++;
+        Token begin= this.regexTokensList.get(tokenIndex);
+        tokens[0]= begin;
+        this.tokenIndex++;
+        if(this.regexTokensList.get(tokenIndex).getType() != 13) throw new IOException("Expected - ");
+        this.tokenIndex++;
+        Token end= this.regexTokensList.get(tokenIndex);
+        this.tokenIndex++;
+        tokens[1]= end;
+        if(this.regexTokensList.get(tokenIndex).getType() != 12) throw new IOException("Expected ] ");
+        return tokens;
+    }
+    public void buildCharacterClass() throws IOException {
+        Token[] bd = tokenBoundary();
+        Token begin = bd[0];
+        Token end = bd[1];
+        EngineNFA engineNFA = new EngineNFA();
+        engineNFA.declareStates("q0", "q1");
+        State initialState = engineNFA.getStateObject("q0");
+        State finalState = engineNFA.getStateObject("q1");
+        engineNFA.setInitialState(initialState);
+        engineNFA.setFinalStates(finalState);
+        engineNFA.addTransition(initialState, finalState, new CharacterMatcher(begin.getText().charAt(0), end.getText().charAt(0)));
+        nfaStack.add(engineNFA);
     }
 }

@@ -10,9 +10,11 @@ import org.regexengine.EngineNFA;
 import parser.regexLexer;
 import parser.regexParser;
 
+import java.io.IOException;
+
 public class Main {
-    public static void main(String[] args) {
-        String input="a|b";
+    public static void main(String[] args) throws IOException {
+        String input="[a-d]+";
         CharStream inputStream= CharStreams.fromString(input);
         regexLexer lexer= new regexLexer(inputStream);
         CommonTokenStream tokens= new CommonTokenStream(lexer);
@@ -25,6 +27,6 @@ public class Main {
         BuildNFA buildNFA= new BuildNFA(tokens);
         buildNFA.parseQuantifiers();
         EngineNFA nfa= buildNFA.getFinalEngine();
-        System.out.println(nfa.compute("h"));
+        System.out.println(nfa.compute("b"));
     }
 }
