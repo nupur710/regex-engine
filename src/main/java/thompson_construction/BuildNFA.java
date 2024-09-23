@@ -20,12 +20,11 @@ public class BuildNFA {
     public void parseQuantifiers() throws IOException {
         boolean orFlag = false;
         State orState = null;
-        while (tokenIndex < regexTokensList.size()) {
+        while (tokenIndex < regexTokensList.size() && regexTokensList.get(tokenIndex).getType() != -1) {
             Token token= regexTokensList.get(tokenIndex);
             switch (token.getType()) {
                 case 11: {
                     buildCharacterClass();
-                    tokenIndex += 3;
                     break;
                 }
                 case 19: {

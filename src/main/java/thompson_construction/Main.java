@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String input="[a-d]+";
+        String input="[a-g]+f";
         CharStream inputStream= CharStreams.fromString(input);
         regexLexer lexer= new regexLexer(inputStream);
         CommonTokenStream tokens= new CommonTokenStream(lexer);
@@ -27,6 +27,6 @@ public class Main {
         BuildNFA buildNFA= new BuildNFA(tokens);
         buildNFA.parseQuantifiers();
         EngineNFA nfa= buildNFA.getFinalEngine();
-        System.out.println(nfa.compute("b"));
+        System.out.println(nfa.compute("bbbf"));
     }
 }
