@@ -8,6 +8,8 @@ import org.regexengine.EngineNFA;
 import parser.regexLexer;
 import thompson_construction.BuildNFA;
 
+import java.io.IOException;
+
 public class BuildNFATest {
 
     EngineNFA engineNFA;
@@ -17,7 +19,7 @@ public class BuildNFATest {
         engineNFA= new EngineNFA();
     }
 
-    public EngineNFA getEngineNFA(String input) {
+    public EngineNFA getEngineNFA(String input) throws IOException {
         CharStream inputStream= CharStreams.fromString(input);
         regexLexer lexer= new regexLexer(inputStream);
         CommonTokenStream tokens= new CommonTokenStream(lexer);
@@ -33,19 +35,19 @@ public class BuildNFATest {
     }
 
     @Test
-    public void testSingleChar() {
+    public void testSingleChar() throws IOException {
         EngineNFA nfa= getEngineNFA("a");
         Assert.assertTrue(nfa.compute("a"));
     }
 
     @Test
-    public void testCharacterConcatenation() {
+    public void testCharacterConcatenation() throws IOException {
         EngineNFA nfa= getEngineNFA("abc");
         Assert.assertTrue(nfa.compute("abc"));
     }
 
     @Test
-    public void testPlus() {
+    public void testPlus() throws IOException {
         EngineNFA nfa= getEngineNFA("a+");
         Assert.assertFalse(nfa.compute(""));
         Assert.assertTrue(nfa.compute("a"));
@@ -59,7 +61,7 @@ public class BuildNFATest {
     }
 
     @Test
-    public void testKleeneStar() {
+    public void testKleeneStar() throws IOException {
         EngineNFA nfa= getEngineNFA("a*");
         Assert.assertTrue(nfa.compute("a"));
         Assert.assertTrue(nfa.compute("aaaaa"));
@@ -74,7 +76,7 @@ public class BuildNFATest {
     }
 
     @Test
-    public void testOptional() {
+    public void testOptional() throws IOException {
         EngineNFA nfa= getEngineNFA("a?");
         Assert.assertTrue(nfa.compute(""));
         Assert.assertTrue(nfa.compute("a"));
@@ -87,7 +89,7 @@ public class BuildNFATest {
     }
 
     @Test
-    public void testOr() {
+    public void testOr() throws IOException {
         EngineNFA nfa= getEngineNFA("a|b");
         Assert.assertTrue(nfa.compute("a"));
         Assert.assertTrue(nfa.compute("b"));
@@ -97,7 +99,7 @@ public class BuildNFATest {
     }
 
     @Test
-    public void testCombos() {
+    public void testCombos() throws IOException {
         EngineNFA nfa= getEngineNFA("a+b?c+");
         Assert.assertTrue(nfa.compute("abc"));
         Assert.assertFalse(nfa.compute("bc"));
@@ -105,5 +107,19 @@ public class BuildNFATest {
         Assert.assertTrue(nfa.compute("aaabc"));
         Assert.assertTrue(nfa.compute("bc"));
         Assert.assertTrue(nfa.compute("bbbc"));
+    }
+
+    @Test
+    public void testClassRange() throws IOException {
+        EngineNFA nfa= getEngineNFA("[a-d]c");
+        Assert.assertTrue(nfa.compute("bc"));
+        nfa= getEngineNFA("[a-d]+c*");
+        Assert.assertTrue(nfa.compute("c"));
+        Assert.assertTrue(nfa.compute("ac"));
+        nfa= getEngineNFA("[m-o]+");
+        Assert.assertTrue(nfa.compute("mnmn"));
+        nfa= getEngineNFA("[x-z]*g?");
+        Assert.assertTrue(nfa.compute("yyyg"));
+        Assert.assertTrue(nfa.compute("z"));
     }
 }
