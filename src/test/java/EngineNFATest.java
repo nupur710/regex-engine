@@ -37,14 +37,14 @@ public class EngineNFATest {
     public void buildEngine2() {
         engineNFA2= new EngineNFA();
         engineNFA2.declareStates("q0", "q1", "q2");
-        engineNFA2.setInitialState(engineNFA.getStateObject("q0"));
+        engineNFA2.setInitialState(engineNFA2.getStateObject("q0"));
         State q3= engineNFA2.getStateObject("q2");
         List<State> finalStatesList= new ArrayList<>();
         finalStatesList.add(q3);
         engineNFA2.setFinalStates(finalStatesList);
-        engineNFA2.addTransition(engineNFA.getStateObject("q0"), engineNFA.getStateObject("q1"), new CharacterMatcher('a'));
-        engineNFA2.addTransition(engineNFA.getStateObject("q1"), engineNFA.getStateObject("q1"), new EpsilonMatcher());
-        engineNFA2.addTransition(engineNFA.getStateObject("q1"), engineNFA.getStateObject("q2"), new CharacterMatcher('b'));
+        engineNFA2.addTransition(engineNFA2.getStateObject("q0"), engineNFA2.getStateObject("q1"), new CharacterMatcher('a'));
+        engineNFA2.addTransition(engineNFA2.getStateObject("q1"), engineNFA2.getStateObject("q1"), new EpsilonMatcher());
+        engineNFA2.addTransition(engineNFA2.getStateObject("q1"), engineNFA2.getStateObject("q2"), new CharacterMatcher('b'));
     }
 
     @Test
