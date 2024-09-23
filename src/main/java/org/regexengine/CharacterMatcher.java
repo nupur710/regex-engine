@@ -2,19 +2,9 @@ package org.regexengine;
 
 public class CharacterMatcher extends Matcher{
 
-    private char c, ch1, ch2;
-
-    //to keep track of class matching
-    public boolean b;
+    private char c;
     public CharacterMatcher(char c) {
         this.c= c;
-        this.b= false;
-    }
-
-    public CharacterMatcher(char ch1, char ch2) {
-        this.ch1= ch1;
-        this.ch2= ch2;
-        this.b= true;
     }
 
     @Override
@@ -23,21 +13,12 @@ public class CharacterMatcher extends Matcher{
     }
 
     @Override
-    boolean isClassMatcher() {
-        return this.b;
-    }
-
-    @Override
-    boolean matches1(char c) {
-        return c>=this.ch1 && c<=this.ch2;
-    }
-
-    boolean isClassChar() {
-        return b;
-    }
-
-    @Override
     boolean isEpsilon() {
+        return false;
+    }
+
+    @Override
+    boolean isClassRangeMatcher() {
         return false;
     }
 

@@ -269,7 +269,7 @@ public class BuildNFA {
         State finalState = engineNFA.getStateObject("q1");
         engineNFA.setInitialState(initialState);
         engineNFA.setFinalStates(finalState);
-        engineNFA.addTransition(initialState, finalState, new CharacterMatcher(begin.getText().charAt(0), end.getText().charAt(0)));
+        engineNFA.addTransition(initialState, finalState, new ClassRangeMatcher(begin.getText().charAt(0), end.getText().charAt(0)));
         nfaStack.add(engineNFA);
     }
 }
