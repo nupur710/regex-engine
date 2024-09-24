@@ -121,5 +121,15 @@ public class BuildNFATest {
         nfa= getEngineNFA("[x-z]*g?");
         Assert.assertTrue(nfa.compute("yyyg"));
         Assert.assertTrue(nfa.compute("z"));
+        Assert.assertFalse(nfa.compute("xyzgg"));
+        nfa= getEngineNFA("[a-d]+[c-g]*");
+        Assert.assertTrue(nfa.compute("dbbbggggd"));
+        Assert.assertTrue(nfa.compute("dbbbe"));
+        Assert.assertTrue(nfa.compute("dbbb"));
+        Assert.assertTrue(nfa.compute("cdefg"));
+        Assert.assertFalse(nfa.compute("efggg"));
+        nfa= getEngineNFA("[a-d][c-g]");
+        Assert.assertTrue(nfa.compute("de"));
+        Assert.assertFalse(nfa.compute("d"));
     }
 }

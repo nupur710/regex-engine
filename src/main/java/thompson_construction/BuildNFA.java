@@ -25,19 +25,12 @@ public class BuildNFA {
             switch (token.getType()) {
                 case 11: {
                     buildCharacterClass();
+                    handleConcatenation(token, orFlag, orState);
                     break;
                 }
                 case 19: {
                     buildSingleChar(token);
-                    if (nfaStack.size() > 1) {
-                        if (orFlag == true && orState != null) {
-                            EngineNFA orConcatenated = buildOrConcat(token, orFlag, orState);
-                            nfaStack.push(orConcatenated);
-                        } else {
-                            EngineNFA concatenated = buildConcat();
-                            nfaStack.push(concatenated);
-                        }
-                    }
+                    handleConcatenation(token, orFlag, orState);
                     break;
                 }
                 case 8: {
@@ -61,6 +54,18 @@ public class BuildNFA {
                     throw new IOException("Invalid token: " + token);
             }
             tokenIndex++;
+        }
+    }
+
+    private void handleConcatenation(Token token, boolean orFlag, State orState) {
+        if (nfaStack.size() > 1) {
+            if (orFlag == true && orState != null) {
+                EngineNFA orConcatenated = buildOrConcat(token, orFlag, orState);
+                nfaStack.push(orConcatenated);
+            } else {
+                EngineNFA concatenated = buildConcat();
+                nfaStack.push(concatenated);
+            }
         }
     }
 
