@@ -11,12 +11,6 @@ public class EpsilonMatcher extends Matcher {
     boolean isEpsilon() {
         return true;
     }
-
-    @Override
-    boolean isClassRangeMatcher() {
-        return false;
-    }
-
     @Override
     String getLabel() {
         return "e";

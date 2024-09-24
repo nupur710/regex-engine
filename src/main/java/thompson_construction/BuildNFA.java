@@ -20,8 +20,8 @@ public class BuildNFA {
     public void parseQuantifiers() throws IOException {
         boolean orFlag = false;
         State orState = null;
-        while (tokenIndex < regexTokensList.size() && regexTokensList.get(tokenIndex).getType() != -1) {
-            Token token= regexTokensList.get(tokenIndex);
+        while (tokenIndex < regexTokensList.size() && getToken(tokenIndex).getType() != -1) {
+            Token token= getToken(tokenIndex);
             switch (token.getType()) {
                 case 11: {
                     buildCharacterClass();
@@ -48,6 +48,11 @@ public class BuildNFA {
                 case 1: {
                     orFlag = true;
                     orState = buildOr();
+                    break;
+                }
+                case 3: {
+                    buildPredefinedCharacterClass();
+                    handleConcatenation(token, orFlag, orState);
                     break;
                 }
                 default:
@@ -253,15 +258,15 @@ public class BuildNFA {
     private Token[] tokenBoundary() throws IOException {
         Token[] tokens= new Token[2];
         this.tokenIndex++;
-        Token begin= this.regexTokensList.get(tokenIndex);
+        Token begin= getToken(tokenIndex);
         tokens[0]= begin;
         this.tokenIndex++;
-        if(this.regexTokensList.get(tokenIndex).getType() != 13) throw new IOException("Expected - ");
+        if(getToken(tokenIndex).getType() != 13) throw new IOException("Expected - ");
         this.tokenIndex++;
-        Token end= this.regexTokensList.get(tokenIndex);
+        Token end= getToken(tokenIndex);
         this.tokenIndex++;
         tokens[1]= end;
-        if(this.regexTokensList.get(tokenIndex).getType() != 12) throw new IOException("Expected ] ");
+        if(getToken(tokenIndex).getType() != 12) throw new IOException("Expected ] ");
         return tokens;
     }
     public void buildCharacterClass() throws IOException {
@@ -276,5 +281,35 @@ public class BuildNFA {
         engineNFA.setFinalStates(finalState);
         engineNFA.addTransition(initialState, finalState, new ClassRangeMatcher(begin.getText().charAt(0), end.getText().charAt(0)));
         nfaStack.add(engineNFA);
+    }
+
+    private void buildPredefinedCharacterClass() {
+        this.tokenIndex++;
+        Token token= getToken(tokenIndex);
+        char ch= token.getText().charAt(0);
+        EngineNFA engineNFA = new EngineNFA();
+        engineNFA.declareStates("q0", "q1");
+        State initialState = engineNFA.getStateObject("q0");
+        State finalState = engineNFA.getStateObject("q1");
+        engineNFA.setInitialState(initialState);
+        engineNFA.setFinalStates(finalState);
+        if(ch=='d') {
+            engineNFA.addTransition(initialState, finalState, new DigitMatcher(ch));
+        } else if(ch== 'D') {
+            engineNFA.addTransition(initialState, finalState, new NonDigitMatcher(ch));
+        } else if(ch== 'w') {
+            engineNFA.addTransition(initialState, finalState, new WordMatcher(ch));
+        } else if(ch== 'W') {
+            engineNFA.addTransition(initialState, finalState, new NonWordMatcher(ch));
+        } else if(ch== 's') {
+            engineNFA.addTransition(initialState, finalState, new WhitespaceMatcher(ch));
+        } else if(ch== 'S') {
+            engineNFA.addTransition(initialState, finalState, new NonWhitespaceMatcher(ch));
+        }
+        nfaStack.add(engineNFA);
+    }
+
+    private Token getToken(int tokenIndex) {
+        return this.regexTokensList.get(tokenIndex);
     }
 }

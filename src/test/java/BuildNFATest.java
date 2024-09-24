@@ -132,4 +132,75 @@ public class BuildNFATest {
         Assert.assertTrue(nfa.compute("de"));
         Assert.assertFalse(nfa.compute("d"));
     }
+
+    @Test
+    public void testPredefinedCharacterClasses() throws IOException {
+        EngineNFA nfa= getEngineNFA("\\\\D");
+        Assert.assertTrue(nfa.compute("a"));
+        Assert.assertFalse(nfa.compute("1"));
+        Assert.assertTrue(nfa.compute("@"));
+        Assert.assertTrue(nfa.compute("X"));
+        Assert.assertFalse(nfa.compute("ab"));
+        nfa= getEngineNFA("\\\\D+");
+        Assert.assertTrue(nfa.compute("abcXYZ"));
+        Assert.assertFalse(nfa.compute("123"));
+        Assert.assertTrue(nfa.compute("!@#"));
+        nfa= getEngineNFA("\\\\w");
+        Assert.assertTrue(nfa.compute("a"));
+        Assert.assertTrue(nfa.compute("1"));
+        Assert.assertTrue(nfa.compute("_"));
+        Assert.assertFalse(nfa.compute("@"));
+        nfa = getEngineNFA("\\\\w+");
+        Assert.assertTrue(nfa.compute("hello"));
+        Assert.assertTrue(nfa.compute("hello_world"));
+        Assert.assertTrue(nfa.compute("123"));
+        Assert.assertFalse(nfa.compute("@#$%"));
+        nfa = getEngineNFA("\\\\W");
+        Assert.assertTrue(nfa.compute("@"));
+        Assert.assertFalse(nfa.compute("a"));
+        Assert.assertFalse(nfa.compute("1"));
+        nfa = getEngineNFA("\\\\W+");
+        Assert.assertTrue(nfa.compute("@#%"));
+        Assert.assertFalse(nfa.compute("abc"));
+        Assert.assertTrue(nfa.compute("!@#"));
+        nfa = getEngineNFA("\\\\s");
+        Assert.assertTrue(nfa.compute(" "));
+        Assert.assertTrue(nfa.compute("\t"));
+        Assert.assertTrue(nfa.compute("\n"));
+        Assert.assertFalse(nfa.compute("abc"));
+        nfa = getEngineNFA("\\\\s+");
+        Assert.assertTrue(nfa.compute("   "));
+        Assert.assertTrue(nfa.compute("\t\t"));
+        Assert.assertFalse(nfa.compute("abc"));
+        Assert.assertFalse(nfa.compute("abc "));
+        nfa = getEngineNFA("\\\\S");
+        Assert.assertTrue(nfa.compute("a"));
+        Assert.assertTrue(nfa.compute("1"));
+        Assert.assertTrue(nfa.compute("@"));
+        Assert.assertFalse(nfa.compute(" "));
+        nfa = getEngineNFA("\\\\S+");
+        Assert.assertTrue(nfa.compute("abc"));
+        Assert.assertTrue(nfa.compute("!@#"));
+        Assert.assertFalse(nfa.compute("  "));
+        Assert.assertFalse(nfa.compute("  a  "));
+        nfa = getEngineNFA("\\\\D+\\\\S");
+        Assert.assertTrue(nfa.compute("abcX"));
+        Assert.assertFalse(nfa.compute("123Y"));
+        Assert.assertTrue(nfa.compute("!@#Z"));
+        Assert.assertFalse(nfa.compute("abc "));
+        nfa = getEngineNFA("\\\\S+\\\\s");
+        Assert.assertTrue(nfa.compute("abc "));
+        Assert.assertTrue(nfa.compute("xyz\t"));
+        Assert.assertFalse(nfa.compute(" "));
+        Assert.assertFalse(nfa.compute("\t"));
+        nfa = getEngineNFA("\\\\w?");
+        Assert.assertTrue(nfa.compute("a"));
+        Assert.assertTrue(nfa.compute("1"));
+        nfa = getEngineNFA("\\\\D*");
+        Assert.assertTrue(nfa.compute("abc"));
+        Assert.assertTrue(nfa.compute(""));
+        Assert.assertFalse(nfa.compute("123"));
+        nfa= getEngineNFA("\\\\w*l[j-m]+");
+        Assert.assertTrue(nfa.compute("Abnm09lkkk"));
+    }
 }

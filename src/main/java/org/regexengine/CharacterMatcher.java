@@ -18,11 +18,6 @@ public class CharacterMatcher extends Matcher{
     }
 
     @Override
-    boolean isClassRangeMatcher() {
-        return false;
-    }
-
-    @Override
     String getLabel() {
         return String.valueOf(c);
     }

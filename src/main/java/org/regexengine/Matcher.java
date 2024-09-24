@@ -10,8 +10,6 @@ abstract public class Matcher {
         return false;
     }
 
-    abstract boolean isClassRangeMatcher();
-
     String getLabel() {
         return "undefined-matcher";
     }

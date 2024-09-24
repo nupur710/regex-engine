@@ -12,10 +12,4 @@ public class ClassRangeMatcher extends Matcher{
     boolean matches(char c) {
         return c>=this.ch1 && c<=this.ch2;
     }
-
-    @Override
-    boolean isClassRangeMatcher() {
-        return true;
-    }
-
 }
