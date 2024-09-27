@@ -1,7 +1,9 @@
 package thompson_construction;
 
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ListTokenSource;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenSource;
 import org.regexengine.*;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ public class BuildNFA {
     private List<Token> regexTokensList;
     private Stack<EngineNFA> nfaStack = new Stack<>();
     private int tokenIndex = 0;
+    private int groupCounter= -1;
 
     public BuildNFA(CommonTokenStream regexTokens) {
         this.regexTokensList = regexTokens.getTokens();
@@ -54,6 +57,12 @@ public class BuildNFA {
                     buildPredefinedCharacterClass();
                     handleConcatenation(token, orFlag, orState);
                     break;
+                }
+                case 5: {
+                    buildCapturingGroup();
+                }
+                case 6: {
+                    continue;
                 }
                 default:
                     throw new IOException("Invalid token: " + token);
@@ -309,7 +318,81 @@ public class BuildNFA {
         nfaStack.add(engineNFA);
     }
 
+    private void buildCapturingGroup() throws IOException {
+        this.tokenIndex++;
+        int startIndex = tokenIndex;
+        int c = 1;  // Start with 1 to account for the opening parenthesis
+        System.out.println("Starting to parse capturing group at index: " + startIndex);
+
+        while (c > 0 && tokenIndex < this.regexTokensList.size()) {
+            Token currentToken = getToken(this.tokenIndex);
+            System.out.println("Current token: " + currentToken.getText() + ", Type: " + currentToken.getType());
+
+            if (currentToken.getType() == 5) {
+                c++;  // Opening parenthesis
+                System.out.println("Found opening parenthesis, c = " + c);
+            }
+            if (currentToken.getType() == 6) {
+                c--;  // Closing parenthesis
+                System.out.println("Found closing parenthesis, c = " + c);
+            }
+            this.tokenIndex++;
+        }
+
+        if (c != 0) {
+            throw new IOException("Unmatched parenthesis");
+        }
+
+        int endIndex = tokenIndex - 1;  // The last token is the closing parenthesis
+        System.out.println("Finished parsing capturing group. Start index: " + startIndex + ", End index: " + endIndex);
+
+        if (startIndex >= endIndex) {
+            System.out.println("Group content: " + regexTokensList.subList(startIndex, endIndex));
+            throw new IOException("Empty capturing group");
+        }
+
+        //create sub nfa for capturing group
+        List<Token> groupTokens = regexTokensList.subList(startIndex, endIndex);
+        System.out.println("Group content: " + groupTokens);
+        CommonTokenStream capturingGroupTokens= getTokenStream(groupTokens);
+        BuildNFA2 groupBuilder = new BuildNFA2(capturingGroupTokens);
+        groupBuilder.parseQuantifiers();
+        EngineNFA groupNFA = groupBuilder.getFinalEngine();
+        CapturingGroup group = new CapturingGroup(groupCounter++, groupNFA, 4, 5);
+
+        EngineNFA mainNFA;
+        if (nfaStack.isEmpty()) {
+            mainNFA = new EngineNFA();
+            mainNFA.declareStates("q0");
+            State initialState = mainNFA.getStateObject("q0");
+            mainNFA.setInitialState(initialState);
+            nfaStack.push(mainNFA);
+        } else {
+            mainNFA = nfaStack.peek();
+        }
+
+        mainNFA.addCapturingGroup(group);
+        State fromState = mainNFA.getInitialState();
+        State toState = new State("q" + mainNFA.stateList.size());
+        CapturingGroupMatcher matcher = new CapturingGroupMatcher();
+        matcher.setCapturingGroup(group);
+        mainNFA.addTransition(fromState, toState, matcher);
+        mainNFA.setFinalStates(toState);
+
+        // Push the updated NFA back onto the stack
+        if (!nfaStack.isEmpty()) {
+            nfaStack.pop();
+        }
+        nfaStack.push(mainNFA);
+    }
     private Token getToken(int tokenIndex) {
         return this.regexTokensList.get(tokenIndex);
+    }
+
+    private CommonTokenStream getTokenStream(List<Token> subList) {
+        TokenSource tokenSource= new ListTokenSource(subList);
+        CommonTokenStream newCommonTokenStreamObj= new CommonTokenStream(tokenSource);
+        newCommonTokenStreamObj.fill();
+        return newCommonTokenStreamObj;
     }
 }

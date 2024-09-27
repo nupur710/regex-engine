@@ -11,14 +11,21 @@ public class EngineNFA {
     public Map<String, State> stateList;
     private State initialState;
     private List<State> finalStates;
-
+    private Map<Integer, String> capturedGroupText;
+    private List<CapturingGroup> capturingGroups;
+    private int matchLength;
 
     public EngineNFA() {
         stateList= new HashMap<>();
         initialState= null;
         finalStates= new ArrayList<>();
+        capturedGroupText= new HashMap<>();
+        capturingGroups= new ArrayList<>();
     }
 
+    public void addCapturingGroup(CapturingGroup capturingGroup) {
+        capturingGroups.add(capturingGroup);
+    }
     public void setInitialState(State state) {
         this.initialState= state;
     }
@@ -104,6 +111,12 @@ public class EngineNFA {
             int i= stackElement.i;
             List<String> memory= stackElement.memory;
             if(this.finalStates.contains(currentState) && i == str.length()) {
+                for(CapturingGroup cgroup : capturingGroups) {
+                    if(cgroup.getStartIndex() != -1 && cgroup.getEndIndex() != -1) {
+                        capturedGroupText.put(cgroup.getGroupNo(),
+                                str.substring(cgroup.getStartIndex(), cgroup.getEndIndex()));
+                    }
+                }
                 return true;
             }
 
@@ -112,6 +125,14 @@ public class EngineNFA {
                 Transition transition= transitions.get(j);
                 Matcher matcher= transition.getMatcher();
                 State toState= transition.getState();
+                if(matcher instanceof CapturingGroupMatcher) {
+                    CapturingGroup group= matcher.capturingGroup;
+                    EngineNFA groupNFA= group.getGroupNFA();
+                    if(groupNFA.compute(str.substring(i))) {
+                        group.setStartAndEndIndex(i, i+groupNFA.getMatchLength());
+                        stateStack.push(new StackElement(i+groupNFA.getMatchLength(), toState, new ArrayList<>()));
+                    }
+                }
                 if(matcher.isEpsilon()) {
                     if(memory.size()>0 && memory.contains(toState.getName())) {
                         continue;
@@ -125,5 +146,13 @@ public class EngineNFA {
             }
         }
         return false;
+    }
+
+    public Map<Integer, String> getCapturedGroupText() {
+        return capturedGroupText;
+    }
+
+    public int getMatchLength() {
+        return matchLength;
     }
 }
